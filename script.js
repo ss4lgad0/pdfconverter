@@ -80,20 +80,19 @@ function crearExcel(datos) {
         const fillStyle = fila[1] > 1 ? estiloBultos : (index % 2 === 0 ? estiloAlternate1 : estiloAlternate2);
         for (let i = 0; i < 5; i++) {
             const cellAddress = XLSX.utils.encode_cell({ r: index + 1, c: i });
-            if (!ws[cellAddress].s) ws[cellAddress].s = {};
-            ws[cellAddress].s.fill = fillStyle;
+            if (!ws[cellAddress]) ws[cellAddress] = {};
+            ws[cellAddress].s = { fill: fillStyle };
         }
     });
 
     // Ajustar el ancho de las columnas
-    const colWidths = [
+    ws['!cols'] = [
         { wch: 18 }, // Número de partida
         { wch: 18 }, // Número de bultos
         { wch: 50 }, // Descripción de la mercancía
         { wch: 18 }, // Número de albarán
         { wch: 12 }  // Peso
     ];
-    ws['!cols'] = colWidths;
 
     for (let row = 2; row <= datos.length + 1; row++) {
         const cellAddress = XLSX.utils.encode_cell({ r: row, c: 1 });
