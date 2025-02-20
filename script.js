@@ -34,8 +34,7 @@ async function extraerDatos(pdf) {
     for (let i = 0; i < pdf.numPages; i++) {
         const page = await pdf.getPage(i + 1);
         const textContent = await page.getTextContent();
-        const textItems = textContent.items.map(item => item.str).join('\n');
-        const lineas = textItems.split('\n');
+        const lineas = textContent.items.map(item => item.str).join('\n').split('\n');
         let numeroAlbaran = "";
         for (let i = 0; i < lineas.length; i++) {
             if (lineas[i].includes("Decl. goods it Nr.")) {
@@ -43,8 +42,8 @@ async function extraerDatos(pdf) {
                 if (partes.length >= 6) {
                     const numeroPartida = partes[0];
                     const numeroBultos = partes[4];
-                    const descripcion = (partes[5].length === 10 && /^\d+$/.test(partes[5])) 
-                        ? partes.slice(6).join(' ') 
+                    const descripcion = (partes[5].length === 10 && /^\d+$/.test(partes[5]))
+                        ? partes.slice(6).join(' ')
                         : partes.slice(5).join(' ');
 
                     for (let j = 0; j < lineas.length; j++) {
@@ -73,32 +72,34 @@ function crearExcel(datos) {
         ...datos
     ]);
 
-    // Ajustar el ancho de las columnas
+    const estiloBultos = { fill: { fgColor: { rgb: "FFD700" } } };
+    const estiloAlternate1 = { fill: { fgColor: { rgb: "ADD8E6" } } };
+    const estiloAlternate2 = { fill: { fgColor: { rgb: "D3D3D3" } } };
+
+    datos.forEach((fila, index) => {
+        const fillStyle = fila[1] > 1 ? estiloBultos : (index % 2 === 0 ? estiloAlternate1 : estiloAlternate2);
+        for (let i = 0; i < 5; i++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: index + 1, c: i });
+            if (!ws[cellAddress].s) ws[cellAddress].s = {};
+            ws[cellAddress].s.fill = fillStyle;
+        }
+    });
+
     const maxLengths = ws['!ref'].split(':').map(cell => cell.match(/[A-Z]+/)[0]);
     maxLengths.forEach((col, i) => {
         let maxLength = 0;
-        for (let row of ws[`${col}1`]) {
-            maxLength = Math.max(maxLength, (ws[`${col}${row}`]?.v || '').toString().length);
+        for (let row = 1; row <= datos.length + 1; row++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: i });
+            maxLength = Math.max(maxLength, (ws[cellAddress]?.v || '').toString().length);
         }
         ws['!cols'][i] = { wch: maxLength + 2 };
     });
 
-    // Aplicar estilos
-    datos.forEach((fila, index) => {
-        const estiloBultos = { fill: { fgColor: { rgb: "FFD700" } } };
-        const estiloAlternate1 = { fill: { fgColor: { rgb: "ADD8E6" } } };
-        const estiloAlternate2 = { fill: { fgColor: { rgb: "D3D3D3" } } };
-        const fillStyle = fila[1] > 1 ? estiloBultos : (index % 2 === 0 ? estiloAlternate1 : estiloAlternate2);
-        for (let i = 0; i < 5; i++) {
-            ws[XLSX.utils.encode_cell({ r: index + 1, c: i })].s = fillStyle;
-        }
-    });
-
-    // Centrar la columna de número de bultos
     for (let row = 2; row <= datos.length + 1; row++) {
-        ws[`B${row}`].s = { alignment: { horizontal: "center" } };
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: 1 });
+        if (!ws[cellAddress].s) ws[cellAddress].s = {};
+        ws[cellAddress].s.alignment = { horizontal: "center" };
     }
 
     XLSX.utils.book_append_sheet(wb, ws, 'Datos');
-    XLSX.writeFile(wb, 'output.xlsx');
-}
+    XLSX.writeFile
