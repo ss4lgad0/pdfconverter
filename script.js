@@ -102,4 +102,5 @@ function crearExcel(datos) {
     }
 
     XLSX.utils.book_append_sheet(wb, ws, 'Datos');
-    XLSX.writeFile
+    XLSX.writeFile(wb, 'output.xlsx');
+}
