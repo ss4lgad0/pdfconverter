@@ -13,17 +13,12 @@ document.getElementById("convertBtn").addEventListener("click", async function()
         return;
     }
 
-    // Cargar la librería pdf.js
-    if (!window.pdfjsLib) {
-        alert("Error cargando pdf.js");
-        return;
-    }
-
+    // Usar pdf.js cargado globalmente en index.html
     const fileReader = new FileReader();
 
     fileReader.onload = async function() {
         const pdfData = new Uint8Array(this.result);
-        const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+        const pdf = await window.pdfjsLib.getDocument({ data: pdfData }).promise;
 
         let extractedData = [];
 
@@ -35,7 +30,7 @@ document.getElementById("convertBtn").addEventListener("click", async function()
             extractedData.push(textItems);
         }
 
-        // Convertir el texto extraído a CSV
+        // Convertir a CSV para descargar como Excel
         const csvContent = "data:text/csv;charset=utf-8," + extractedData.join("\n");
         const encodedUri = encodeURI(csvContent);
         const link = document.getElementById("downloadLink");
