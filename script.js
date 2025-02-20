@@ -85,15 +85,15 @@ function crearExcel(datos) {
         }
     });
 
-    const maxLengths = ws['!ref'].split(':').map(cell => cell.match(/[A-Z]+/)[0]);
-    maxLengths.forEach((col, i) => {
-        let maxLength = 0;
-        for (let row = 1; row <= datos.length + 1; row++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: row, c: i });
-            maxLength = Math.max(maxLength, (ws[cellAddress]?.v || '').toString().length);
-        }
-        ws['!cols'][i] = { wch: maxLength + 2 };
-    });
+    // Ajustar el ancho de las columnas
+    const colWidths = [
+        { wch: 18 }, // Número de partida
+        { wch: 18 }, // Número de bultos
+        { wch: 50 }, // Descripción de la mercancía
+        { wch: 18 }, // Número de albarán
+        { wch: 12 }  // Peso
+    ];
+    ws['!cols'] = colWidths;
 
     for (let row = 2; row <= datos.length + 1; row++) {
         const cellAddress = XLSX.utils.encode_cell({ r: row, c: 1 });
