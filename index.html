@@ -1,22 +1,15 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF a Excel</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    </script>
+    <title>Subir archivo de texto</title>
 </head>
 <body>
-    <h1>Convertir PDF a Excel</h1>
-    <input type="file" id="fileInput" accept="application/pdf">
-    <button id="convertBtn" disabled>Convertir a Excel</button>
-    <a id="downloadLink" style="display: none">Descargar Excel</a>
-    
-    <script src="script.js"></script>
+    <h1>Subir archivo de texto</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".txt" required>
+        <button type="submit">Subir archivo</button>
+    </form>
 </body>
 </html>
