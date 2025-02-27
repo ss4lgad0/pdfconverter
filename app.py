@@ -9,31 +9,32 @@ import gc
 def extraer_datos(pdf_path):
     datos = []
     with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            texto = page.extract_text()
-            if texto:
-                lineas = texto.split('\n')
-                numero_albarán = ""
-                for i, linea in enumerate(lineas):
-                    if "Decl. goods it Nr." in linea:
-                        if i + 1 < len(lineas):
-                            partes = lineas[i + 1].strip().split()
-                            if len(partes) >= 6:
-                                numero_partida = partes[0]
-                                numero_bultos = partes[4]
-                                if len(partes[5]) == 10 and partes[5].isdigit():
-                                    descripcion = " ".join(partes[6:])
-                                else:
-                                    descripcion = " ".join(partes[5:])
-                    if "UCR [12 08] Gross mass [18 04]" in linea:
-                        if i + 1 < len(lineas):
-                            partes_peso = lineas[i + 1].strip().split()
-                            if len(partes_peso) >= 2:
-                                numero_albarán = partes_peso[0]
-                                peso = float(partes_peso[1])
-                                if peso > 0:
-                                    datos.append([numero_partida, int(numero_bultos), descripcion, numero_albarán, peso])
+        # Procesar solo la primera página
+        texto = pdf.pages[2].extract_text()
+        if texto:
+            lineas = texto.split('\n')
+            numero_albarán = ""
+            for i, linea in enumerate(lineas):
+                if "Decl. goods it Nr." in linea:
+                    if i + 1 < len(lineas):
+                        partes = lineas[i + 1].strip().split()
+                        if len(partes) >= 6:
+                            numero_partida = partes[0]
+                            numero_bultos = partes[4]
+                            if len(partes[5]) == 10 and partes[5].isdigit():
+                                descripcion = " ".join(partes[6:])
+                            else:
+                                descripcion = " ".join(partes[5:])
+                if "UCR [12 08] Gross mass [18 04]" in linea:
+                    if i + 1 < len(lineas):
+                        partes_peso = lineas[i + 1].strip().split()
+                        if len(partes_peso) >= 2:
+                            numero_albarán = partes_peso[0]
+                            peso = float(partes_peso[1])
+                            if peso > 0:
+                                datos.append([numero_partida, int(numero_bultos), descripcion, numero_albarán, peso])
     return datos
+
 
 def estilizar_excel(excel_path):
     wb = load_workbook(excel_path)
