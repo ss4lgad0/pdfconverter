@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Alignment
+import gc
 
 def extraer_datos(pdf_path):
     datos = []
@@ -51,12 +52,12 @@ def estilizar_excel(excel_path):
         ws.column_dimensions[col_letter].width = max_length + 2
     
     # Estilos de color
-    fill_bultos = PatternFill(start_color="FFD700", end_color="FFD700", fill_type="solid")  # Dorado para bultos >1
-    fill_alternate_1 = PatternFill(start_color="ADD8E6", end_color="ADD8E6", fill_type="solid")  # Azul clarito
-    fill_alternate_2 = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")  # Gris clarito
+    fill_bultos = PatternFill(start_color="FFD700", end_color="FFD700", fill_type="solid")
+    fill_alternate_1 = PatternFill(start_color="ADD8E6", end_color="ADD8E6", fill_type="solid")
+    fill_alternate_2 = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")
     
     for i, row in enumerate(ws.iter_rows(min_row=2, max_row=ws.max_row), start=1):
-        if row[1].value > 1:  # Número de bultos mayor que 1
+        if row[1].value > 1:
             for cell in row:
                 cell.fill = fill_bultos
         else:
@@ -69,6 +70,8 @@ def estilizar_excel(excel_path):
         cell.alignment = Alignment(horizontal="center")
     
     wb.save(excel_path)
+    del wb, ws, fill_bultos, fill_alternate_1, fill_alternate_2
+    gc.collect()  # Forzar recolección de basura
 
 app = Flask(__name__)
 
@@ -84,19 +87,34 @@ def upload():
     if file.filename == '':
         return "No selected file"
     
-    pdf_path = "uploaded.pdf"
-    file.save(pdf_path)
+    try:
+        pdf_path = "uploaded.pdf"
+        file.save(pdf_path)
+    except Exception as e:
+        return f"Error saving PDF: {e}"
     
-    datos = extraer_datos(pdf_path)
+    try:
+        datos = extraer_datos(pdf_path)
+    except Exception as e:
+        return f"Error extracting data from PDF: {e}"
     
-    df = pd.DataFrame(datos, columns=["Número de partida", "Número de bultos", "Descripción de la mercancía", "Número de albarán", "Peso"])
-    excel_path = "output.xlsx"
-    df.to_excel(excel_path, index=False)
+    try:
+        df = pd.DataFrame(datos, columns=["Número de partida", "Número de bultos", "Descripción de la mercancía", "Número de albarán", "Peso"])
+        excel_path = "output.xlsx"
+        df.to_excel(excel_path, index=False)
+        del df  # Liberar memoria
+    except Exception as e:
+        return f"Error creating Excel file: {e}"
     
-    estilizar_excel(excel_path)
+    try:
+        estilizar_excel(excel_path)
+    except Exception as e:
+        return f"Error styling Excel file: {e}"
     
-    return send_file(excel_path, as_attachment=True)
+    try:
+        return send_file(excel_path, as_attachment=True)
+    except Exception as e:
+        return f"Error sending Excel file: {e}"
 
 if __name__ == '__main__':
     app.run(debug=True)
-
