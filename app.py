@@ -21,16 +21,16 @@ def extraer_datos(pdf_path):
                                 numero_partida = partes[0]
                                 numero_bultos = partes[4]
                                 if len(partes[5]) == 10 and partes[5].isdigit():
-                                    descripcion = " ".join(partes[6:])  # Eliminar número de albarán de la descripción
+                                    descripcion = " ".join(partes[6:])
                                 else:
                                     descripcion = " ".join(partes[5:])
                     if "UCR [12 08] Gross mass [18 04]" in linea:
                         if i + 1 < len(lineas):
                             partes_peso = lineas[i + 1].strip().split()
                             if len(partes_peso) >= 2:
-                                numero_albarán = partes_peso[0]  # Tomar el primer número después de "UCR"
+                                numero_albarán = partes_peso[0]
                                 peso = float(partes_peso[1])
-                                if peso > 0:  # Solo agregar si el peso es mayor a 0
+                                if peso > 0:
                                     datos.append([numero_partida, int(numero_bultos), descripcion, numero_albarán, peso])
     return datos
 
